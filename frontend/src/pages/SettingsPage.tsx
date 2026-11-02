@@ -1,46 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { KeyRound, Mail, ShieldCheck, UserRound } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Database, Smartphone, UserRound } from 'lucide-react'
 import { Badge, Button, Card, ErrorMessage, Field, Input, PageHeading } from '../components/ui'
-import { patch, put } from '../lib/api'
+import { patch } from '../lib/api'
 import { useAuth } from '../lib/auth'
 
 export function SettingsPage() {
-  const { user, refreshUser, logout } = useAuth()
-  const navigate = useNavigate()
-  const [name, setName] = useState(user?.full_name || '')
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  const saveProfile = async (event: FormEvent) => {
-    event.preventDefault(); setBusy(true); setError(''); setMessage('')
-    try { await patch('/auth/me', { full_name: name }); await refreshUser(); setMessage('Perfil atualizado.') }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível atualizar o perfil.') }
-    finally { setBusy(false) }
-  }
-  const savePassword = async (event: FormEvent) => {
-    event.preventDefault(); setBusy(true); setError(''); setMessage('')
-    try {
-      await put('/auth/password', { current_password: currentPassword, new_password: newPassword })
-      await logout(); navigate('/login', { replace: true })
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível alterar a senha.') }
-    finally { setBusy(false) }
-  }
-
-  return <>
-    <PageHeading title="Configurações" description="Seu perfil e as opções de acesso da sua conta." />
-    {error && <div className="mb-4"><ErrorMessage message={error} /></div>}
-    {message && <p role="status" className="mb-4 rounded-xl border border-[#d8e9cc] bg-[#f0f7e9] px-3.5 py-2.5 text-sm text-[#527544]">{message}</p>}
-    <div className="grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
-      <Card><div className="mb-5 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaf0e7] text-[#648063]"><UserRound size={18} /></span><div><h2 className="font-semibold text-[#30483a]">Perfil</h2><p className="mt-1 text-xs text-[#8c9990]">Informações básicas da sua conta.</p></div></div>
-        <form onSubmit={saveProfile} className="space-y-4"><Field label="Nome"><Input required minLength={1} maxLength={120} value={name} onChange={event => setName(event.target.value)} autoComplete="name" /></Field><Field label="E-mail"><div className="relative"><Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#99a59c]" /><Input className="pl-9" value={user?.email || ''} readOnly aria-readonly="true" /></div></Field><div className="flex items-center gap-2 text-xs text-[#7b897f]"><ShieldCheck size={15} className="text-[#6e9460]" />Conta pessoal protegida por senha.</div><Button type="submit" busy={busy}>Salvar perfil</Button></form>
-      </Card>
-      <Card><div className="mb-5 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f2ecfa] text-[#8565a1]"><KeyRound size={18} /></span><div><h2 className="font-semibold text-[#30483a]">Senha e segurança</h2><p className="mt-1 text-xs text-[#8c9990]">Tokens ativos são revogados após a troca.</p></div></div>
-        <form onSubmit={savePassword} className="space-y-4"><Field label="Senha atual"><Input type="password" required maxLength={128} autoComplete="current-password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} /></Field><Field label="Nova senha" hint="No mínimo 12 caracteres."><Input type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} /></Field><Button type="submit" variant="secondary" busy={busy}>Alterar senha</Button></form><div className="mt-5 flex items-center justify-between rounded-xl bg-[#f7f8f5] px-3.5 py-3"><div><p className="text-xs font-semibold text-[#526459]">Recuperação de senha</p><p className="mt-0.5 text-[11px] text-[#919d94]">Disponível quando o serviço de e-mail estiver configurado.</p></div><Badge tone="blue">SMTP</Badge></div>
-      </Card>
-    </div>
-  </>
+  const { user, refreshUser } = useAuth(); const [name, setName] = useState(user.full_name); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false)
+  const saveProfile = async (event: FormEvent) => { event.preventDefault(); setBusy(true); setError(''); setMessage(''); try { await patch('/auth/me', { full_name: name }); await refreshUser(); setMessage('Nome salvo neste celular.') } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível salvar.') } finally { setBusy(false) } }
+  return <><PageHeading title="Configurações" description="Preferências do seu LifeOS pessoal e offline." />{error && <div className="mb-4"><ErrorMessage message={error} /></div>}{message && <p role="status" className="mb-4 rounded-xl border border-emerald-300/20 bg-emerald-400/10 px-3.5 py-2.5 text-sm text-emerald-200">{message}</p>}<div className="grid gap-5 xl:grid-cols-[1.1fr_.9fr]"><Card><div className="mb-5 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300"><UserRound size={18} /></span><div><h2 className="font-semibold text-slate-100">Seu perfil</h2><p className="mt-1 text-xs text-slate-500">Identificação salva apenas no aparelho.</p></div></div><form onSubmit={saveProfile} className="space-y-4"><Field label="Como quer ser chamado?"><Input required minLength={1} maxLength={120} value={name} onChange={event => setName(event.target.value)} /></Field><Button type="submit" busy={busy}>Salvar nome</Button></form></Card><Card><div className="mb-5 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300"><Smartphone size={18} /></span><div><h2 className="font-semibold text-slate-100">Modo do aplicativo</h2><p className="mt-1 text-xs text-slate-500">Tudo fica no armazenamento local.</p></div></div><div className="space-y-3"><div className="flex items-center justify-between rounded-xl bg-white/[.05] px-3.5 py-3"><span className="flex items-center gap-2 text-sm text-slate-300"><Database size={16} /> Dados offline</span><Badge tone="green">Ativo</Badge></div><p className="text-xs leading-5 text-slate-500">Não há login, servidores ou sincronização. Seus dados permanecem neste celular e podem ser apagados ao desinstalar o app.</p></div></Card></div></>
 }
