@@ -1,7 +1,8 @@
-.app-shell { min-height: 100vh; }
-.sidebar-scroll { scrollbar-width: thin; scrollbar-color: #526a5d transparent; }
+.app-shell { min-height: 100vh; background-image: radial-gradient(circle at 70% -10%, rgba(0, 192, 255, .10), transparent 34%), radial-gradient(circle at 10% 90%, rgba(89, 67, 255, .08), transparent 28%); }
+.sidebar-scroll { scrollbar-width: thin; scrollbar-color: #155e75 transparent; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 @media (max-width: 767px) {
   .calendar-grid { grid-template-columns: repeat(7, minmax(44px, 1fr)); }
   .calendar-scroll { overflow-x: auto; }
+  .app-shell main { padding-bottom: 0.5rem; }
 }

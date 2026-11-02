@@ -1,49 +1,14 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
 import { LoaderCircle } from 'lucide-react'
-
-export function Button({ children, variant = 'primary', busy, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'; busy?: boolean
-}) {
-  const styles = {
-    primary: 'bg-[#244535] text-white hover:bg-[#315b45] focus:ring-[#b6db74]',
-    secondary: 'bg-[#e9eee6] text-[#244535] hover:bg-[#dfe8dc] focus:ring-[#b6db74]',
-    ghost: 'bg-transparent text-[#52665a] hover:bg-[#eff2ed] focus:ring-[#b6db74]',
-    danger: 'bg-[#fff0ed] text-[#a44233] hover:bg-[#ffe2dd] focus:ring-[#f7b0a4]',
-  }
-  return <button {...props} disabled={props.disabled || busy} className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55 ${styles[variant]} ${className}`}>
-    {busy && <LoaderCircle size={16} className="animate-spin" />}{children}
-  </button>
-}
-
-const fieldClass = 'w-full rounded-xl border border-[#dfe5dc] bg-white px-3.5 py-2.5 text-sm text-[#20352a] outline-none transition placeholder:text-[#a1aca3] focus:border-[#799c78] focus:ring-2 focus:ring-[#dce8d5]'
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={`${fieldClass} ${props.className || ''}`} />
-}
-export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${fieldClass} min-h-28 resize-y ${props.className || ''}`} />
-}
-export function Select({ children, ...props }: InputHTMLAttributes<HTMLSelectElement> & { children: ReactNode }) {
-  return <select {...props} className={`${fieldClass} ${props.className || ''}`}>{children}</select>
-}
-export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
-  return <label className="grid gap-1.5 text-sm font-medium text-[#506257]">{label}{children}{hint && <span className="text-xs font-normal text-[#8b9990]">{hint}</span>}</label>
-}
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-[#e7ebe4] bg-white p-5 shadow-[0_3px_18px_rgba(33,55,44,0.035)] sm:p-6 ${className}`}>{children}</section>
-}
-export function PageHeading({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
-  return <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h1 className="text-2xl font-semibold tracking-tight text-[#1e3028] sm:text-[28px]">{title}</h1>{description && <p className="mt-1.5 max-w-2xl text-sm text-[#77857b]">{description}</p>}</div>{action}</div>
-}
-export function ErrorMessage({ message }: { message: string }) {
-  return <p role="alert" className="rounded-xl border border-[#f4d0ca] bg-[#fff5f2] px-3.5 py-2.5 text-sm text-[#9e493d]">{message}</p>
-}
-export function EmptyState({ title, description }: { title: string; description: string }) {
-  return <div className="rounded-2xl border border-dashed border-[#d9e1d8] px-6 py-12 text-center"><p className="font-semibold text-[#42564a]">{title}</p><p className="mx-auto mt-1.5 max-w-md text-sm text-[#8b9990]">{description}</p></div>
-}
-export function LoadingState() {
-  return <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-[#75847a]"><LoaderCircle className="animate-spin" size={18} /> Carregando dados…</div>
-}
-export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'green' | 'amber' | 'red' | 'blue' }) {
-  const tones = { neutral: 'bg-[#f0f2ef] text-[#657269]', green: 'bg-[#e9f4df] text-[#4b703a]', amber: 'bg-[#fff2d7] text-[#8d6a21]', red: 'bg-[#ffebe7] text-[#a04c3e]', blue: 'bg-[#e7f1f3] text-[#4c737a]' }
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>
-}
+export function Button({ children, variant = 'primary', busy, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' | 'danger'; busy?: boolean }) { const styles = { primary: 'border border-cyan-300/35 bg-cyan-300/15 text-cyan-100 hover:bg-cyan-300/25 focus:ring-cyan-300/50', secondary: 'border border-white/10 bg-white/[.06] text-slate-200 hover:bg-white/[.11] focus:ring-cyan-300/40', ghost: 'bg-transparent text-slate-400 hover:bg-white/[.06] focus:ring-cyan-300/40', danger: 'border border-rose-400/25 bg-rose-400/10 text-rose-200 hover:bg-rose-400/20 focus:ring-rose-300/40' }; return <button {...props} disabled={props.disabled || busy} className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#050a0f] disabled:cursor-not-allowed disabled:opacity-55 ${styles[variant]} ${className}`}>{busy && <LoaderCircle size={16} className="animate-spin" />}{children}</button> }
+const fieldClass = 'w-full rounded-xl border border-white/10 bg-[#0b151d] px-3.5 py-2.5 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-300/10'
+export function Input(props: InputHTMLAttributes<HTMLInputElement>) { return <input {...props} className={`${fieldClass} ${props.className || ''}`} /> }
+export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) { return <textarea {...props} className={`${fieldClass} min-h-28 resize-y ${props.className || ''}`} /> }
+export function Select({ children, ...props }: InputHTMLAttributes<HTMLSelectElement> & { children: ReactNode }) { return <select {...props} className={`${fieldClass} ${props.className || ''}`}>{children}</select> }
+export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) { return <label className="grid gap-1.5 text-sm font-medium text-slate-300">{label}{children}{hint && <span className="text-xs font-normal text-slate-500">{hint}</span>}</label> }
+export function Card({ children, className = '' }: { children: ReactNode; className?: string }) { return <section className={`rounded-2xl border border-cyan-300/12 bg-[#0a141c]/90 p-5 shadow-[0_10px_30px_rgba(0,0,0,.18)] sm:p-6 ${className}`}>{children}</section> }
+export function PageHeading({ title, description, action }: { title: string; description?: string; action?: ReactNode }) { return <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h1 className="text-2xl font-semibold tracking-tight text-slate-100 sm:text-[28px]">{title}</h1>{description && <p className="mt-1.5 max-w-2xl text-sm text-slate-500">{description}</p>}</div>{action}</div> }
+export function ErrorMessage({ message }: { message: string }) { return <p role="alert" className="rounded-xl border border-rose-300/20 bg-rose-400/10 px-3.5 py-2.5 text-sm text-rose-200">{message}</p> }
+export function EmptyState({ title, description }: { title: string; description: string }) { return <div className="rounded-2xl border border-dashed border-cyan-300/15 px-6 py-12 text-center"><p className="font-semibold text-slate-200">{title}</p><p className="mx-auto mt-1.5 max-w-md text-sm text-slate-500">{description}</p></div> }
+export function LoadingState() { return <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-slate-500"><LoaderCircle className="animate-spin" size={18} /> Carregando dados…</div> }
+export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'green' | 'amber' | 'red' | 'blue' }) { const tones = { neutral: 'bg-white/[.08] text-slate-300', green: 'bg-emerald-400/12 text-emerald-300', amber: 'bg-amber-400/12 text-amber-200', red: 'bg-rose-400/12 text-rose-200', blue: 'bg-cyan-400/12 text-cyan-200' }; return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span> }
