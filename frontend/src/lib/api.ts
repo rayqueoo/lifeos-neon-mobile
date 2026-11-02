@@ -1,44 +1,19 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
-const TOKEN_KEY = 'lifeos.access-token.v1'
-
-export class ApiError extends Error {
-  status: number
-  constructor(status: number, message: string) {
-    super(message)
-    this.status = status
-    this.name = 'ApiError'
-  }
-}
-
-export const tokenStore = {
-  get: () => sessionStorage.getItem(TOKEN_KEY),
-  set: (token: string) => sessionStorage.setItem(TOKEN_KEY, token),
-  clear: () => sessionStorage.removeItem(TOKEN_KEY),
-}
-
-export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers = new Headers(options.headers)
-  if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json')
-  const token = tokenStore.get()
-  if (token) headers.set('Authorization', `Bearer ${token}`)
-  let response: Response
-  try {
-    response = await fetch(`${API_URL}${path}`, { ...options, headers })
-  } catch {
-    throw new ApiError(0, 'Não foi possível conectar à API. Verifique a conexão e tente novamente.')
-  }
-  if (response.status === 401) window.dispatchEvent(new Event('lifeos:unauthorized'))
-  if (!response.ok) {
-    const data = await response.json().catch(() => null) as { detail?: unknown } | null
-    const message = typeof data?.detail === 'string' ? data.detail : 'Não foi possível concluir esta ação.'
-    throw new ApiError(response.status, message)
-  }
-  if (response.status === 204) return undefined as T
-  return response.json() as Promise<T>
-}
-
-export const get = <T>(path: string) => api<T>(path)
-export const post = <T>(path: string, body: unknown) => api<T>(path, { method: 'POST', body: JSON.stringify(body) })
-export const patch = <T>(path: string, body: unknown) => api<T>(path, { method: 'PATCH', body: JSON.stringify(body) })
-export const put = <T>(path: string, body: unknown) => api<T>(path, { method: 'PUT', body: JSON.stringify(body) })
-export const remove = <T = void>(path: string) => api<T>(path, { method: 'DELETE' })
+import type { Account, CalendarEvent, Category, Dashboard, Habit, Note, Project, Task, Transaction } from './types'
+type LocalState = { tasks: Task[]; projects: Project[]; habits: Habit[]; notes: Note[]; events: CalendarEvent[]; accounts: Account[]; categories: Category[]; transactions: Transaction[]; logs: Record<number, { id: number; habit_id: number; logged_on: string }[]>; profile: { full_name: string; email: string } }
+const KEY = 'lifeos-offline-v1'; const now = () => new Date().toISOString(); const dateOnly = (v: string) => v.slice(0, 10)
+const initial: LocalState = { tasks: [], projects: [], habits: [], notes: [], events: [], accounts: [], categories: [], transactions: [], logs: {}, profile: { full_name: 'Meu LifeOS', email: 'dispositivo local' } }
+const read = (): LocalState => { try { const saved = JSON.parse(localStorage.getItem(KEY) || '{}'); return { ...initial, ...saved } } catch { return initial } }
+const write = (state: LocalState) => localStorage.setItem(KEY, JSON.stringify(state)); const nextId = (items: { id: number }[]) => items.reduce((max, item) => Math.max(max, item.id), 0) + 1
+const cleanPath = (path: string) => path.split('?')[0].replace(/\/$/, ''); const bodyOf = (body: unknown) => typeof body === 'string' ? JSON.parse(body) : (body || {}) as Record<string, unknown>
+function dashboard(s: LocalState): Dashboard { const today = dateOnly(now()); const active = s.projects.filter(p => p.status !== 'completed'); const currencies = [...new Set(s.accounts.map(a => a.currency))].map(currency => { const tx = s.transactions.filter(t => s.accounts.find(a => a.id === t.account_id)?.currency === currency); const income = tx.filter(t => t.kind === 'income').reduce((sum, t) => sum + Number(t.amount), 0); const expenses = tx.filter(t => t.kind === 'expense').reduce((sum, t) => sum + Number(t.amount), 0); return { currency, income: String(income), expenses: String(expenses), net: String(income - expenses), categories: [] } }); return { generated_at: now(), tasks: { total: s.tasks.length, pending: s.tasks.filter(t => t.status === 'pending').length, in_progress: s.tasks.filter(t => t.status === 'in_progress').length, completed: s.tasks.filter(t => t.status === 'completed').length, overdue: s.tasks.filter(t => t.due_at && t.due_at < now() && t.status !== 'completed').length, due_today: s.tasks.filter(t => t.due_at && dateOnly(t.due_at) === today && t.status !== 'completed').length }, projects: { active: active.length, average_progress: active.length ? Math.round(active.reduce((sum, p) => sum + p.progress, 0) / active.length) : 0 }, habits_today: s.habits.filter(h => h.active).map(h => ({ ...h, checked_in_today: (s.logs[h.id] || []).some(l => l.logged_on === today) })), upcoming_events: s.events.filter(e => e.starts_at >= now()).sort((a, b) => a.starts_at.localeCompare(b.starts_at)).slice(0, 5), finance: { accounts: s.accounts, monthly: { month: today.slice(0, 7), currencies } } } }
+export class ApiError extends Error { status: number; constructor(status: number, message: string) { super(message); this.status = status } }
+export const tokenStore = { get: () => 'offline', set: (_token: string) => undefined, clear: () => undefined }
+export async function api<T>(path: string, options: RequestInit = {}): Promise<T> { const s = read(); const clean = cleanPath(path); const method = options.method || 'GET'; const data = bodyOf(options.body); let result: unknown
+  if (clean === '/dashboard') result = dashboard(s)
+  else if (clean === '/auth/me') { if (method === 'PATCH') { s.profile.full_name = String(data.full_name || s.profile.full_name); result = { id: 1, ...s.profile } } else result = { id: 1, ...s.profile } }
+  else if (clean === '/auth/password' || clean === '/auth/logout') result = undefined
+  else if (clean === '/finance/summary/monthly') result = dashboard(s).finance.monthly
+  else if (/^\/habits\/\d+\/logs$/.test(clean)) { const id = Number(clean.split('/')[2]); if (method === 'GET') result = s.logs[id] || []; else { const log = { id: nextId(s.logs[id] || []), habit_id: id, logged_on: String(data.logged_on) }; s.logs[id] = [...(s.logs[id] || []), log]; result = log } }
+  else { const groups: Record<string, keyof LocalState> = { '/tasks': 'tasks', '/projects': 'projects', '/habits': 'habits', '/notes': 'notes', '/calendar/events': 'events', '/finance/accounts': 'accounts', '/finance/categories': 'categories', '/finance/transactions': 'transactions' }; const key = Object.keys(groups).find(k => clean === k || clean.startsWith(`${k}/`)); if (!key) throw new ApiError(404, 'Recurso local não encontrado.'); const collection = s[groups[key]] as { id: number }[]; const match = path.match(/\/(\d+)(?:\?|$)/); const id = match ? Number(match[1]) : 0; if (method === 'GET') result = collection; else if (method === 'DELETE') { (s[groups[key]] as { id: number }[]) = collection.filter(item => item.id !== id); result = undefined } else if (method === 'PATCH') { const item = collection.find(entry => entry.id === id); if (item) Object.assign(item, data); result = item } else { const item = { id: collection.length + 1, ...data } as { id: number }; (s[groups[key]] as { id: number }[]).push(item); result = item } }
+  write(s); return result as T }
+export const get = <T>(path: string) => api<T>(path); export const post = <T>(path: string, body: unknown) => api<T>(path, { method: 'POST', body: JSON.stringify(body) }); export const patch = <T>(path: string, body: unknown) => api<T>(path, { method: 'PATCH', body: JSON.stringify(body) }); export const put = <T>(path: string, body: unknown) => api<T>(path, { method: 'PUT', body: JSON.stringify(body) }); export const remove = <T = void>(path: string) => api<T>(path, { method: 'DELETE' })

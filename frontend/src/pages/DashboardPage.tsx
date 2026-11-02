@@ -3,14 +3,12 @@ import { Link } from 'react-router-dom'
 import { ArrowDownRight, ArrowRight, ArrowUpRight, CalendarClock, CheckCircle2, CircleAlert, CircleDollarSign, FolderKanban, ListTodo, RefreshCw, Sparkles } from 'lucide-react'
 import { Badge, Button, Card, EmptyState, ErrorMessage, LoadingState, PageHeading } from '../components/ui'
 import { get } from '../lib/api'
-import { useAuth } from '../lib/auth'
 import type { Dashboard } from '../lib/types'
 
 const money = (value: string, currency: string) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(Number(value))
 const dateTime = (value: string) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 
 export function DashboardPage() {
-  const { user } = useAuth()
   const [data, setData] = useState<Dashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -25,7 +23,7 @@ export function DashboardPage() {
   if (loading && !data) return <LoadingState />
   if (error && !data) return <ErrorMessage message={error} />
   if (!data) return null
-  const firstName = user?.full_name.split(' ')[0] || 'aí'
+  const firstName = 'seu dia'
   const metrics = [
     { label: 'Tarefas abertas', value: data.tasks.pending + data.tasks.in_progress, detail: `${data.tasks.completed} concluídas`, icon: ListTodo, tone: 'bg-[#e9f3df] text-[#577a43]' },
     { label: 'Em atraso', value: data.tasks.overdue, detail: `${data.tasks.due_today} para hoje`, icon: CircleAlert, tone: 'bg-[#fff0e9] text-[#b36849]' },

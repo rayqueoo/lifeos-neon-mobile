@@ -32,3 +32,9 @@ cd android
 ```
 
 O artefato esperado será `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+## Modo pessoal offline
+
+A versão Android atual não usa API, servidor, banco externo, login ou cadastro. Os dados são salvos localmente no armazenamento do aplicativo usando `localStorage`/WebView. O app abre diretamente no painel e pode ser usado somente neste celular.
+
+O identificador do app continua `com.rayquelabs.lifeos`. O launcher usa o símbolo triangular ciano sobre fundo escuro.
